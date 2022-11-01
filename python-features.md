@@ -60,8 +60,140 @@ print(p)
 # will print: "Point(x=11, y=22)"
 ```
 
-*TODO: сделать подводку к `dataclasses`*
+*TODO: сделать ссылку на `dataclasses` как логичное продолжение*
 
+### Counter
+Это подкласс `dict`, который служит для подсчета хешируемых обхектов (чаще всего внутри итерируемых). Он представляет из себя коллекцию, где элементы хранятся как ключи, а в качестве значений
+#### Примеры использования:
+1. Создание объекта `Counter`:
+```python
+from collections import Counter
+# 1.1. Создание по итерируемому объекту
+cnt1 = Counter(['a', 'b', 'c', 'a', 'b', 'b']
+# 1.2. Создание через dict
+cnt2 = Counter({'a':2, 'b':3, 'c':1}
+# 1.3. Создание через kwargs
+cnt3 = Counter(a=2, b=3, c=1)
+# 1.4. Counter ведет себя как dict
+print(cnt1)
+# will print: Counter({'b': 3, 'a': 2, 'c':1})
+```
+2. Базовый функционал:
+```python
+from collections import Counter
+# 2.1. Не кидает KeyError
+c = Counter(['a','bb','a','d'])
+print(c['c'])
+# will print: 0
+# 2.2. Может возвратить sorted multiset:
+print(sorted(c.elements())) # Без sorted, elements() вернет в том порядке в котором они встретились
+# will print: ['a', 'a', 'bb', 'd']
+# 2.3. Может вернуть n самых частых/редких элементов
+n = 2
+print(c.most_common(n))
+# will print: [('a', 2), ('bb', 1)]
+print(c.most_common()[:-n-1:-1])
+# will print: [('d',1), ('bb',1)]
+# 2.4. Частотные характеристики можно вычитать
+d = Counter('ab')
+print(c.subtract(d))
+# 2.5. Унарные операции сложения/вычитания
+e = Counter(a=2, b=-4)
+print(+e) # Складывает с пустым Counter
+# will print: Counter({'a': 2})
+print(-e) # Вычитает из пустого Counter
+# will print: Counter({'b': 4})
+```
+3. Задачи:
+```python
+# 3.1. Найти все подстроки-анаграммы в другой подстроке
+...
+```
+TODO: Добавить решение задачки 
+
+### defaultdict
+Это подкласс `dict`, который переопределяет метод добавления значений в словарь. Когда ключ не был найден в словаре, тогда в словаре создается этот ключ с заданным дефолтным значением.
+Данный объект работает быстрее чем словарь образованный методом `setdefault()`.
+
+#### Примеры использования:
+1. Создание `defaultdict`:
+```python
+from collections import defaultdict
+# 1.1. Создание счетчика
+d = defaultdict(int)
+d[3]+=1
+print(d[2], d[3])
+# will print: 0 1
+# 1.2. Создание группировщика
+l = defaultdict(list)
+# 1.3. Создание группировщика уникальных значений
+l = defaultdict(set)
+```
+2. Базовый функционал:
+```python
+# 1.1. Группировка по ключу
+s = [('a', 1),('b',2),('b',3),('a', 3),('c', 1)]
+d = defaultdict(list)
+for k,v in s:
+    d[k].append(v)
+print(sorted(d.items()))
+# will print: [('a', [1,3]),('b', [2,3]),('c',[1])]
+```
+### OrderedDict
+Отсортированный словарь, ведет себя как обычный `dict`, но у него имеются дополнитеьные возможности для порядковых операций.
+
+Отличия от `dict`:
+- `OrderedDict` разработан для эффективности по памяти, скорости итерирования по элементам и скорости выполнения операций обновления значений.
+- Операция сравнения учитывает порядок ключей
+- Может обрабатывать операции связанные с порядком ключей быстрее чем `dict`.
+- `move_to_end()` - эффективный метод перестановки позиции ключа в конец
+- 
+#### Примеры использования:
+1. Создание `OrderedDict`:
+```python
+from collections import OrderedDict
+# 1.1. Создание базовое
+od = OrderedDict()
+# 1.2. Более эффективная реализация dict
+class LastUpdatedOrderedDict(OrderedDict):
+    def __setitem__(self, key, value):
+        super().__setitem__(key,value)
+        self.move_to_end(key)
+a = LastUpdatedOrderedDict()
+```
+2. Базовый функционал:
+```python
+from collections import OrderedDict
+# 2.1. Быстрое перемещение в начало/конец списка
+d = OrderedDict.fromkeys('abcde')
+d.move_to_end('b')
+print(''.join(d))
+# will print: 'acdeb'
+d.move_to_end('b', last=False)
+print(''.join(d))
+# will print: 'bacde'
+# 2.2. Имплементация LRU cache ограниченного по времени
+class TimeBoundedLRU: # Декоратор
+    "LRU Cache that invalidates and refreshes old entries."
+
+    def __init__(self, func, maxsize=128, maxage=30):
+        self.cache = OrderedDict()      # { args : (timestamp, result)}
+        self.func = func
+        self.maxsize = maxsize
+        self.maxage = maxage
+
+    def __call__(self, *args):
+        if args in self.cache:
+            self.cache.move_to_end(args)
+            timestamp, result = self.cache[args]
+            if time() - timestamp <= self.maxage:
+                return result
+        result = self.func(*args)
+        self.cache[args] = time(), result
+        if len(self.cache) > self.maxsize:
+            self.cache.popitem(0)
+        return result
+```
 ## Производительность (стандартная библиотека)[^](#functools)
 
 TODO: добавить про array (насколько быстрее list)
