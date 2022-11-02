@@ -60,7 +60,7 @@ print(p)
 # will print: "Point(x=11, y=22)"
 ```
 
-*TODO: сделать ссылку на `dataclasses` как логичное продолжение*
+_TODO_: сделать ссылку на `dataclasses` как логичное продолжение*
 
 ### Counter
 Это подкласс `dict`, который служит для подсчета хешируемых обхектов (чаще всего внутри итерируемых). Он представляет из себя коллекцию, где элементы хранятся как ключи, а в качестве значений
@@ -109,7 +109,7 @@ print(-e) # Вычитает из пустого Counter
 # 3.1. Найти все подстроки-анаграммы в другой подстроке
 ...
 ```
-TODO: Добавить решение задачки 
+_TODO_: Добавить решение задачки 
 
 ### defaultdict
 Это подкласс `dict`, который переопределяет метод добавления значений в словарь. Когда ключ не был найден в словаре, тогда в словаре создается этот ключ с заданным дефолтным значением.
@@ -147,7 +147,6 @@ print(sorted(d.items()))
 - Операция сравнения учитывает порядок ключей
 - Может обрабатывать операции связанные с порядком ключей быстрее чем `dict`.
 - `move_to_end()` - эффективный метод перестановки позиции ключа в конец
-- 
 #### Примеры использования:
 1. Создание `OrderedDict`:
 ```python
@@ -194,9 +193,185 @@ class TimeBoundedLRU: # Декоратор
             self.cache.popitem(0)
         return result
 ```
+
+### ChainMap
+Класс похожий на словарь используемый для соединения множества словарей в единый вид.
+Также если один из составляющих `ChainMap` словарей изменяется, то и сам `ChainMap` обновляет свои значения.
+Если несколько в полученной модели несколько ключей ссылаюихся на разные объекты, то возвращается тот, чей словарь был записан раньше. 
+При этом если операции обновления будут работать только при обращении к ключу первого словаря. Но операции чтения работают по всей цепочке словарей.
+#### Примеры кода:
+1. Создание `ChainMap`:
+```python
+from collections import ChainMap
+# 1.1. Базовое создание
+baseline = {'music': 'bach', 'art': 'rembrandt'}
+adjustments = {'art': 'van gogh', 'opera': 'carmen'}
+print(list(ChainMap(adjustments, baseline)))
+# will print: ['music', 'art', 'opera']
+```
+2. Примеры использования:
+```python
+from collections import ChainMap
+import os, argparse
+# 2.1. Парсинг аргументов c приоритетом
+defaults = {'color': 'red', 'user': 'guest'}
+parser = argparse.ArgumentParser()
+parser.add_argument('-u', '--user')
+parser.add_argument('-c', '--color')
+namespace = parseer.parse_args()
+command_line_args = {k: v for k, v in vars(namespace).items() if v is not None}
+
+combined = ChainMap(command_line_args, os.environ, defaults)
+print(combined['color'])
+print(combined['user'])
+# 2.2. Словарь позволяющий обновлять элементы и у других словарей в цепочке
+class DeepChainMap(ChainMap):
+    def __setitem__(self, key, value):
+        for mapping in self.maps:
+            if key in mapping:
+                mapping[key] = value
+                return
+        self.maps[0][key] = value
+    def __delitem__(self, key):
+        for mapping in self.maps:
+            if key in mapping:
+                del mapping[key]
+                return
+        raise KeyError(key)
+```
+### deque
+Дэк - структура данных, которая сочетает в себе стек и очередь. `deque` является thread-safe и эффективен по использованию памяти. Операции вставки и удаления с начала/конца выполняются за O(1). 
+Если `maxlen` не указан, то дек может расти до любых размеров. Если дек заполнится то добавление новых элементов с одного конца будет приводить к удалению элементов с другого. Это удобно для потоковых алгоритмов. 
+#### Примеры кода:
+1. Создание `deque`:
+```python
+from collections import deque
+# 1.1. Базовое создание
+d = deque('ghi') # через итерируемый объект
+print(d)
+# will print: deque(['g', 'h', 'i])
+```
+2. Базовый функционал:
+```python
+from collections import deque
+d = deque('ghi')
+# 2.1. Вставка/удаление
+d.append('j')
+d.appendleft('f')
+print(d)
+# will print: deque(['f', 'g', 'h', 'i', 'j'])
+d.pop()
+d.popleft()
+print(d)
+# will print: deque(['g', 'h', 'i'])
+# 2.2. Индексация
+print(d[0], d[-1])
+# will print: g i
+# 2.3. Увеличение дека
+d.extend('jkl')
+d.extendleft('abc')
+print(d)
+# will print: deque(['a', 'b', 'c', 'g', 'h', 'i', 'j', 'k', 'l'])
+# 2.4. Циклический сдвиг (эффективвнее чем у list)
+f = deque([1,2,3])
+f.rotate(1)
+f.rotate(-2)
+print(d)
+# will print: deque([2, 3, 1]) 
+```
+3. Примеры использования:
+```python
+from collections import deque
+# 3.1. Реализация tail для считывания из файла
+def tail(filename, n=10):
+    with open(filename) as f:
+        return deque(f, n)
+# 3.2. Имплементация балансировщика по типу Round-Robin
+def roundrobin(*iterables):
+    iterators = deque(map(iter, iterables))
+    while iterators:
+        try:
+            while True:
+                yield next(iterators[0])
+                iterators.rotate(-1)
+        except StopIteration:
+            # Remove an exhausted iterator.
+            iterators.popleft()
+for el in roundrobin('abc','d','ef'):
+    print(el, end=' ')
+# will print: a d e b f c
+```
+4. Задачи:
+```python
+# 4.1. Moving average
+def moving_average(iterable, n=3):
+    it = iter(iterable)
+    d = deque(itertools.islice(it, n-1))
+    d.appendleft(0)
+    s = sum(d)
+    for elem in it:
+        s += elem - d.popleft()
+        d.append(elem)
+        yield s / n
+```
+### collections.abc
+Этот модуль предоставляет базовые абстрактные классы которые могут быть использованы как для реализации своих контейнеров, так и для проверки на то, предоставляет ли рассматриваемый класс необходимый интерфейс (например можно ли по его элементам итерироваться). 
+Проверка на реализацию интерфейса осуществляется через вызов функций: `issubclass(()` `isinstance()`. Некоторые классы могут принадлежать конкретным интерфейсам и без наследования и регистрации. Для этого достаточно реализовать абстрактные методы. 
+Собственный класс может наследоваться от этих асбтрактных классов и реализовывать их, при наследовании также приобретятся миксины сопровождающиеся вместе с наследуемыми классами.
+Примеры частоиспользуемых классов:
+- Container
+- Hashable
+- Iterable
+- Iterator
+- Collection
+- Sequence
+- Mapping
+#### Примеры кода:
+1. Базовый функционал:
+```python
+from collections.abc import Sequence
+# 1.1. Наследование
+class C(Sequence):
+    def __init__(self): pass
+    def __getitem__(self, index):  pass
+    def __len__(self):  pass
+    def count(self, value): pass
+# 1.2. Регистрация
+class D:
+    def __init__(self): pass
+    def __getitem__(self, index):  pass
+    def __len__(self):  pass
+    def count(self, value): pass
+    def index(self, value): pass
+Sequence.register(D)
+# 1.3. Проверка на реализацию интерфейсов
+print(issubclass(D, Sequence), isinstance(D(), Sequence))
+# will print: True True
+```
+2. Примеры использования:
+```python
+from collections.abc import Set
+# 2.1. Альтернативная реализация set, не требующая хеширования, эффективная по памяти, но не эффективная по скорости
+class ListSet(Set):
+    def __init__(self, iterable):
+        self.elements = lst = []
+        for value in iterable:
+            if value not in lst:
+                lst.append(value)
+    def __iter__(self):
+        return iter(self.elements)
+    def __contains__(self, value):
+        return value in self.elements
+    def __len__(self):
+        return len(self.elements)
+s1 = ListSet('abcdef')
+s2 = ListSet('defghi')
+print(list(s1 & s2))
+# will print: ['d', 'e', 'f']
+```
 ## Производительность (стандартная библиотека)[^](#functools)
 
-TODO: добавить про array (насколько быстрее list)
+_TODO_: добавить про array (насколько быстрее list)
 
 __Встроенные функции для вычислительных операций__
 
