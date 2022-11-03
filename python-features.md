@@ -10,12 +10,6 @@
   - [Что нового в 3.10^](#что-нового-в-310)
 
 ## Модуль Functools[^](#functools)
-TODO: описать основные методы, по желанию добавить свои 
-* cached_property
-* partial
-* reduce
-* singledispatch
-* wraps
 
 __Декоратор `cached_property`__
 
