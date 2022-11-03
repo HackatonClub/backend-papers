@@ -28,7 +28,425 @@ TODO: описать основные структуры, по желанию д
 * deque
 * collections.abc
 
+### namedtuple
+Это `tuple`, который каждому элементу кортежа присваивает имя.
+К `namedtuple` можно обращаться как к обычному `tuple`, а также к каждому элементу можно обращаться по атрибутам.
+Использование `namedtuple`, позволяет писать более читаемый и само-документирующийся код.
+Если требуется структура данных напоминяющщая `namedtuple`, но при этом с возможностью измнения полей, то тогда стоит обратить внимание на `dataclasses`.
 
+#### Примеры использования:
+1. Создание объекта `namedtuple`:
+```python
+from collections import namedtuple
+from typing import NamedTuple
+
+# 1.1. Стандартный способ:
+
+Point = namedtuple("Point", ["x", "y"])
+p = Point(11, y=22)
+
+# 1.2. Более лаконичный способ:
+
+class Point(NamedTuple):
+    x: int
+    y: int
+
+p = Point(11, y=22)
+```
+2. Базовый функционал:
+```python
+# 2.1. Индексация обхектов как в обычном tuple
+p[0] + p[1]
+
+# 2.2. Аналогично распаковка
+x, y = p
+
+# 2.3. Обращение к элементам по названиям полей
+p.x + p.y
+
+# 2.4. __repr__ метод переобределен в следующим виде:
+print(p)
+# will print: "Point(x=11, y=22)"
+```
+
+### Counter
+Это подкласс `dict`, который служит для подсчета хешируемых обхектов (чаще всего внутри итерируемых). Он представляет из себя коллекцию, где элементы хранятся как ключи, а в качестве значений
+#### Примеры использования:
+1. Создание объекта `Counter`:
+```python
+from collections import Counter
+
+# 1.1. Создание по итерируемому объекту
+cnt1 = Counter(["a", "b", "c", "a", "b", "b"])
+
+# 1.2. Создание через dict
+cnt2 = Counter({"a": 2, "b": 3, "c": 1})
+
+# 1.3. Создание через kwargs
+cnt3 = Counter(a=2, b=3, c=1)
+
+# 1.4. Counter ведет себя как dict
+print(cnt1)
+# will print: Counter({'b': 3, 'a': 2, 'c':1})
+```
+2. Базовый функционал:
+```python
+from collections import Counter
+
+# 2.1. Не кидает KeyError
+c = Counter(["a", "bb", "a", "d"])
+print(c["c"])
+# will print: 0
+
+# 2.2. Может возвратить sorted multiset:
+print(
+    sorted(c.elements())
+)  # Без sorted, elements() вернет в том порядке в котором они встретились
+# will print: ['a', 'a', 'bb', 'd']
+
+# 2.3. Может вернуть n самых частых/редких элементов
+n = 2
+print(c.most_common(n))
+# will print: [('a', 2), ('bb', 1)]
+print(c.most_common()[: -n - 1 : -1])
+# will print: [('d',1), ('bb',1)]
+
+# 2.4. Частотные характеристики можно вычитать
+d = Counter("ab")
+print(c.subtract(d))
+
+# 2.5. Унарные операции сложения/вычитания
+e = Counter(a=2, b=-4)
+print(+e)  # Складывает с пустым Counter
+# will print: Counter({'a': 2})
+print(-e)  # Вычитает из пустого Counter
+# will print: Counter({'b': 4})
+```
+3. Задачи:
+```python
+# 3.1. Найти все подстроки-анаграммы в другой подстроке
+def findAnagrams(self, s: str, p: str) -> list[str]:
+    cnt1 = Counter(s[: len(p)])
+    cnt2 = Counter(p)
+    res = list()
+    for i in range(n2, n1):
+        cnt1[s[i]] += 1
+        cnt1[s[i - n2]] -= 1
+        if +cnt1 == +cnt2:
+            res.append(i - n2 + 1)
+    return res
+```
+
+### defaultdict
+Это подкласс `dict`, который переопределяет метод добавления значений в словарь. Когда ключ не был найден в словаре, тогда в словаре создается этот ключ с заданным дефолтным значением.
+Данный объект работает быстрее чем словарь образованный методом `setdefault()`.
+
+#### Примеры использования:
+1. Создание `defaultdict`:
+```python
+from collections import defaultdict
+
+# 1.1. Создание счетчика
+d = defaultdict(int)
+d[3] += 1
+print(d[2], d[3])
+# will print: 0 1
+
+# 1.2. Создание группировщика
+l = defaultdict(list)
+
+# 1.3. Создание группировщика уникальных значений
+l = defaultdict(set)
+```
+2. Базовый функционал:
+```python
+# 1.1. Группировка по ключу
+s = [("a", 1), ("b", 2), ("b", 3), ("a", 3), ("c", 1)]
+d = defaultdict(list)
+for k, v in s:
+    d[k].append(v)
+print(sorted(d.items()))
+# will print: [('a', [1,3]),('b', [2,3]),('c',[1])]
+```
+### OrderedDict
+Отсортированный словарь, ведет себя как обычный `dict`, но у него имеются дополнитеьные возможности для порядковых операций.
+
+Отличия от `dict`:
+- `OrderedDict` разработан для эффективности по памяти, скорости итерирования по элементам и скорости выполнения операций обновления значений.
+- Операция сравнения учитывает порядок ключей
+- Может обрабатывать операции связанные с порядком ключей быстрее чем `dict`.
+- `move_to_end()` - эффективный метод перестановки позиции ключа в конец
+#### Примеры использования:
+1. Создание `OrderedDict`:
+```python
+from collections import OrderedDict
+
+# 1.1. Создание базовое
+od = OrderedDict()
+
+# 1.2. Более эффективная реализация dict
+class LastUpdatedOrderedDict(OrderedDict):
+    def __setitem__(self, key, value):
+        super().__setitem__(key,value)
+        self.move_to_end(key)
+        
+a = LastUpdatedOrderedDict()
+```
+2. Базовый функционал:
+```python
+from collections import OrderedDict
+
+# 2.1. Быстрое перемещение в начало/конец списка
+d = OrderedDict.fromkeys("abcde")
+d.move_to_end("b")
+print("".join(d))
+# will print: 'acdeb'
+d.move_to_end("b", last=False)
+print("".join(d))
+# will print: 'bacde'
+
+# 2.2. Имплементация LRU cache ограниченного по времени
+class TimeBoundedLRU:  # Декоратор
+    "LRU Cache that invalidates and refreshes old entries."
+
+    def __init__(self, func, maxsize=128, maxage=30):
+        self.cache = OrderedDict()  # { args : (timestamp, result)}
+        self.func = func
+        self.maxsize = maxsize
+        self.maxage = maxage
+
+    def __call__(self, *args):
+        if args in self.cache:
+            self.cache.move_to_end(args)
+            timestamp, result = self.cache[args]
+            if time() - timestamp <= self.maxage:
+                return result
+        result = self.func(*args)
+        self.cache[args] = time(), result
+        if len(self.cache) > self.maxsize:
+            self.cache.popitem(0)
+        return result
+```
+
+### ChainMap
+Класс похожий на словарь используемый для соединения множества словарей в единый вид.
+Также если один из составляющих `ChainMap` словарей изменяется, то и сам `ChainMap` обновляет свои значения.
+Если несколько в полученной модели несколько ключей ссылаюихся на разные объекты, то возвращается тот, чей словарь был записан раньше. 
+При этом если операции обновления будут работать только при обращении к ключу первого словаря. Но операции чтения работают по всей цепочке словарей.
+#### Примеры кода:
+1. Создание `ChainMap`:
+```python
+from collections import ChainMap
+# 1.1. Базовое создание
+baseline = {'music': 'bach', 'art': 'rembrandt'}
+adjustments = {'art': 'van gogh', 'opera': 'carmen'}
+print(list(ChainMap(adjustments, baseline)))
+# will print: ['music', 'art', 'opera']
+```
+2. Примеры использования:
+```python
+from collections import ChainMap
+import os, argparse
+
+# 2.1. Парсинг аргументов c приоритетом
+defaults = {'color': 'red', 'user': 'guest'}
+parser = argparse.ArgumentParser()
+parser.add_argument('-u', '--user')
+parser.add_argument('-c', '--color')
+namespace = parseer.parse_args()
+command_line_args = {k: v for k, v in vars(namespace).items() if v is not None}
+
+combined = ChainMap(command_line_args, os.environ, defaults)
+print(combined['color'])
+print(combined['user'])
+
+# 2.2. Словарь позволяющий обновлять элементы и у других словарей в цепочке
+class DeepChainMap(ChainMap):
+    def __setitem__(self, key, value):
+        for mapping in self.maps:
+            if key in mapping:
+                mapping[key] = value
+                return
+        self.maps[0][key] = value
+    def __delitem__(self, key):
+        for mapping in self.maps:
+            if key in mapping:
+                del mapping[key]
+                return
+        raise KeyError(key)
+```
+### deque
+Дэк - структура данных, которая сочетает в себе стек и очередь или же просто двусторонняя очередь.
+В дэк можно добавлять можно делать вставки в начало и в конец. Операции вставки и удаления с начала/конца выполняются за O(1). 
+`deque` является thread-safe и эффективен по использованию памяти.
+Если `maxlen` не указан, то дек может расти до любых размеров. Если дек заполнится то добавление новых элементов с одного конца будет приводить к удалению элементов с другого. Это удобно для потоковых(pipe) алгоритмов.
+Они используются например для сохранения истории каких либо действий (например операций undo), которые со временем нужно будет очищать. 
+#### Примеры кода:
+1. Создание `deque`:
+```python
+from collections import deque
+
+# 1.1. Базовое создание
+d = deque('ghi') # через итерируемый объект
+print(d)
+# will print: deque(['g', 'h', 'i])
+```
+2. Базовый функционал:
+```python
+from collections import deque
+
+# 2.1. Вставка/удаление
+d.append('j')
+d.appendleft('f')
+print(d)
+# will print: deque(['f', 'g', 'h', 'i', 'j'])
+
+d.pop()
+d.popleft()
+print(d)
+# will print: deque(['g', 'h', 'i'])
+
+# 2.2. Индексация
+print(d[0], d[-1])
+# will print: g i
+
+# 2.3. Увеличение дека
+d.extend('jkl')
+d.extendleft('abc')
+print(d)
+# will print: deque(['a', 'b', 'c', 'g', 'h', 'i', 'j', 'k', 'l'])
+
+# 2.4. Циклический сдвиг (эффективвнее чем у list)
+f = deque([1,2,3])
+f.rotate(1)
+f.rotate(-2)
+print(d)
+# will print: deque([2, 3, 1]) 
+```
+3. Примеры использования:
+```python
+from collections import deque
+
+# 3.1. Реализация pipe
+N = 5
+pipe = deque(maxlen=N)
+pipe.extend('123456789')
+print(pipe)
+# will print: deque(['5', '6', '7', '8', '9'], maxlen=5)
+
+# 3.2. Эффективное считывание строчек файла с конца
+def tail(filename, n=10):
+    with open(filename) as f:
+        return deque(f, n)
+        
+# 3.3. Имплементация балансировщика по типу Round-Robin
+def roundrobin(*iterables):
+    iterators = deque(map(iter, iterables))
+    while iterators:
+        try:
+            while True:
+                yield next(iterators[0])
+                iterators.rotate(-1)
+        except StopIteration:
+            # Remove an exhausted iterator.
+            iterators.popleft()
+            
+for el in roundrobin('abc','d','ef'):
+    print(el, end=' ')
+# will print: a d e b f c
+```
+4. Задачи:
+```python
+# 4.1. Moving average
+def moving_average(iterable, n=3):
+    it = iter(iterable)
+    d = deque(itertools.islice(it, n-1))
+    d.appendleft(0)
+    s = sum(d)
+    for elem in it:
+        s += elem - d.popleft()
+        d.append(elem)
+        yield s / n
+```
+### collections.abc
+Этот модуль предоставляет базовые абстрактные классы которые могут быть использованы как для реализации своих контейнеров, так и для проверки на то, предоставляет ли рассматриваемый класс необходимый интерфейс (например можно ли по его элементам итерироваться). 
+Проверка на реализацию интерфейса осуществляется через вызов функций: `issubclass()` `isinstance()`. Некоторые классы могут принадлежать конкретным интерфейсам и без наследования и регистрации. Для этого достаточно реализовать абстрактные методы. 
+Собственный класс может наследоваться от этих абcтрактных классов и реализовывать их, при наследовании также приобретятся миксины сопровождающиеся вместе с наследуемыми классами.
+Примеры частоиспользуемых классов:
+- Container
+- Hashable
+- Iterable
+- Iterator
+- Collection
+- Sequence
+- Mapping
+#### Примеры кода:
+1. Базовый функционал:
+```python
+from collections.abc import Sequence
+
+# 1.1. Наследование
+class C(Sequence): # Имплементация класса с методами получения элементов по индексам
+    def __init__(self): pass
+    def __getitem__(self, index):  pass
+    def __len__(self):  pass
+    def count(self, value): pass
+    
+# 1.2. Регистрация
+class D:
+    def __init__(self): pass
+    def __getitem__(self, index):  pass
+    def __len__(self):  pass
+    def count(self, value): pass
+    def index(self, value): pass
+    
+Sequence.register(D)
+
+# 1.3. Проверка на реализацию интерфейсов
+print(issubclass(D, Sequence), isinstance(D(), Sequence))
+# will print: True True
+```
+2. Примеры использования:
+```python
+from collections.abc import Set, Mapping
+
+# 2.1. Реализация словаря, с доступом только для чтения
+class ReadOnlyDict(Mapping):
+    data: dict()
+    def __init__(self, input_dict: dict):
+        assert isinstance(input_dict, dict)
+        self.data = input_dict
+    def __getitem__(self, item):
+        return self.data[item]
+    def __iter__(self):
+        return iter(self.data)
+    def __len__(self):
+        return len(self.data.keys())
+        
+d = ReadOnlyDict({1:1, 2:2})
+print(d[2])
+# will print: 2
+d[3] = 3 # will raise TypeError
+
+# 2.2. Альтернативная реализация set, не требующая хеширования, эффективная по памяти, но не эффективная по скорости
+class ListSet(Set):
+    def __init__(self, iterable):
+        self.elements = lst = [] # Эффективность по памяти заключается в использовании связных списков, которые при добавлении элементов линейно увеличивают выделенную память, в отличие от set и dict, которые увеличивают размер выделенной памяти в 2 или 4 раза при достижении предела.
+        for value in iterable:
+            if value not in lst:
+                lst.append(value)
+    def __iter__(self):
+        return iter(self.elements)
+    def __contains__(self, value):
+        return value in self.elements
+    def __len__(self):
+        return len(self.elements)
+        
+s1 = ListSet('abcdef')
+s2 = ListSet('defghi')
+print(list(s1 & s2))
+# will print: ['d', 'e', 'f']
+```
 ## Производительность (стандартная библиотека)[^](#functools)
 
 TODO: добавить про array (насколько быстрее list)
