@@ -281,15 +281,6 @@ print(wraps_hello.__doc__)
 
 ## Модуль Collections[^](#collections)
 
-TODO: описать основные структуры, по желанию добавить свои
-* namedtuple
-* Counter
-* defaultdict
-* OrderedDict
-* ChainMap
-* deque
-* collections.abc
-
 ### namedtuple
 Это `tuple`, который каждому элементу кортежа присваивает имя.
 К `namedtuple` можно обращаться как к обычному `tuple`, а также к каждому элементу можно обращаться по атрибутам.
