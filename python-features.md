@@ -2,7 +2,24 @@
 
 - [Python. Продвинутый уровень](#python-продвинутый-уровень)
   - [Модуль Functools^](#модуль-functools)
+      - [Что по сути делает `partial`?](#что-по-сути-делает-partial)
+    - [Объект `partial()` имеет три атрибута только для чтения:](#объект-partial-имеет-три-атрибута-только-для-чтения)
+    - [reduce(f, *[i1, i2, i3, i4]*) = *f(i1, f(i2, f(i3)))*](#reducef-i1-i2-i3-i4--fi1-fi2-fi3)
   - [Модуль Collections^](#модуль-collections)
+    - [namedtuple](#namedtuple)
+      - [Примеры использования:](#примеры-использования)
+    - [Counter](#counter)
+      - [Примеры использования:](#примеры-использования-1)
+    - [defaultdict](#defaultdict)
+      - [Примеры использования:](#примеры-использования-2)
+    - [OrderedDict](#ordereddict)
+      - [Примеры использования:](#примеры-использования-3)
+    - [ChainMap](#chainmap)
+      - [Примеры кода:](#примеры-кода)
+    - [deque](#deque)
+      - [Примеры кода:](#примеры-кода-1)
+    - [collections.abc](#collectionsabc)
+      - [Примеры кода:](#примеры-кода-2)
   - [Производительность (стандартная библиотека)^](#производительность-стандартная-библиотека)
   - [Производительность (сторонние модули)^](#производительность-сторонние-модули)
   - [Обработка больших файлов^](#обработка-больших-файлов)
@@ -37,7 +54,7 @@ print(new_circle.square)
 print(new_circle.radius)
 # 10
 ```
-Как мы видим значение площади не меняется так как она закеширована, чтобы это исправить нужно удалить кеш.
+Как мы видим значение площади не меняется так как она закэширована, чтобы это исправить нужно удалить кеш.
 ```python
 del new_circle.square
 print(new_circle.square)
@@ -48,9 +65,9 @@ __Функция `partial`__
 
 С помощью данной функции мы можем заморозить часть аргументов, вызываемой функции.
 
-* Пример:
+Пример:
 
-     Вывода квадратно уравнения по заданным параметрам
+* Вывод квадратного уравнения по заданным параметрам
 
 ```python
 def quadratic_equation(a,b,c):
@@ -61,27 +78,27 @@ print(quadratic_equation(2,3,4))
 Допустим нам нужно реализовать функцию, которая бы всегда выводила, квадратное уравнение с фиксированным параметром `a` , чтобы мы сделали?
 
 ```python
-def quadratic_equation_with_fix_a_2(b,c):
+def quad_equation_fix_a_2(b,c):
     return quadratic_equation(2,b,c)
-print(quadratic_equation_with_fix_a_2(6,10))
+print(quad_equation_fix_a_2(6,10))
 # 2x^2+6x+10
 
-def quadratic_equation_with_fix_a_5(b,c):
+def quad_equation_fix_a_5(b,c):
     return quadratic_equation(5,b,c)
-print(quadratic_equation_with_fix_a_5(6,10))
+print(quad_equation_fix_a_5(6,10))
 # 5x^2+6x+10
 ```
-Когда таких функций переписанных мало, то этот метод сойдет, но когда их много, на помощь придет `partical`
+Когда таких функций переписанных мало, то этот метод сойдет, но когда их много, на помощь придет `partial`
 ```python
 from functools import partial
 
-quadratic_equation_fix_with_parical_fix_2 = partial(quadratic_equation, 2)
-print(quadratic_equation_fix_with_parical_fix_2(4, 3))
+quad_equation_fix_2 = partial(quadratic_equation, 2)
+print(quad_equation_fix_2(4, 3))
 # 2x^2+4x+3
 
 # Фиксируем элемент c изначальной функции
-quadratic_equation_fix_with_parical_fix_5 = partial(quadratic_equation, 5, c=5)
-print(quadratic_equation_fix_with_parical_fix_5(1))
+quad_equation_fix_5 = partial(quadratic_equation, 5, c=5)
+print(quad_equation_fix_5(1))
 # 5x^2+1x+5
 
 ```
@@ -113,13 +130,13 @@ def partial(func, /, *args, **keywords):
     Атрибут partial.keywords возвращает ключевые аргументы, с которыми будет вызвана исходная функция func.
 
 ```python
-print(quadratic_equation_fix_with_parical_fix_5.func)
+print(quad_equation_fix_5.func)
 # <function quadratic_equation at 0x0000020E29C93400>
 
-print(quadratic_equation_fix_with_parical_fix_5.args)
+print(quad_equation_fix_5.args)
 # (5,)
 
-print(quadratic_equation_fix_with_parical_fix_5.keywords)
+print(quad_equation_fix_5.keywords)
 # {'c': 5}
 
 ```
@@ -140,11 +157,11 @@ Eсли он присутствует, он помещается перед эл
 from functools import reduce
 
 a = [1, 2, 3]
-sumwithreduce = reduce(lambda x, a: x + a, a)
-print("Сумма с reduce:", sumwithreduce)
+reduce_sum = reduce(lambda x, a: x + a, a)
+print("Сумма с reduce:", reduce_sum)
 # Сумма с reduce: 6
-sumWithReduceAndinItializer = reduce(lambda x, a: x + a, a, 4)
-print("Сумма с reduce and initializer:" sumWithReduceAndinItializer)
+reduce_initializer_sum = reduce(lambda x, a: x + a, a, 4)
+print("Сумма с reduce and initializer:" reduce_initializer_sum)
 # Сумма с reduce and initializer: 10
 ```
 Еще пример использования reduce:
@@ -159,6 +176,7 @@ seekonlyone = reduce(lambda x, y: x ^ y, a)
 print(seekonlyone)
 ```
 __Декоратор `@singledispatch`__
+
 Декоратор `@singledispatch` модуля `functools` создает из обычной функции - универсальную функцию.(По сути это перегрузка функции)
 Чтобы определить универсальную функцию, оберните ее с помощью декоратора `@singledispatch`. Обратите внимание, что в перегруженные реализации передается тип первого аргумента:
 
@@ -192,7 +210,7 @@ print(format(time(19, 22, 15)))
 # 19:22:15
 ```
 Чтобы добавить перегруженные реализации в функцию, используйте атрибут `.register()` обобщенной функции `fun`. Выражение `fun.register()` то же является декоратором.
-Затем мы определяем отдельные функции для каждого типа, который мы хотим перегрузить — в данном случае дату, дату и время —каждый из них имеет имя `_` (подчеркивание), потому что они все равно будут вызываться (отправляться) через метод форматирования, поэтому нет необходимости давать им полезные имена. Каждый из них также украшен `@format.register`, который связывает их с ранее упомянутой функцией форматирования. 
+Затем мы определяем отдельные функции для каждого типа, который мы хотим перегрузить — в данном случае дату и время — каждый из них имеет имя `_` (подчеркивание), потому что они все равно будут вызываться (отправляться) через метод форматирования, поэтому нет необходимости давать им полезные имена. Каждый из них также украшен `@format.register`, который связывает их с ранее упомянутой функцией форматирования. 
 
 Также мы можем перегружать с помощью  `@singledispatch` методы классов:
 ```python
@@ -221,7 +239,7 @@ print(f.format(time(19, 22, 15)))
 ```
 __Декоратор `@wraps`__
 
-Для начала вспомним, что такое вообще декораторы. Это функция которая принимает функцию в качестве аргумента и модифицирует ее.
+Для начала вспомним, что такое вообще декораторы. Это функция, которая принимает функцию в качестве аргумента и модифицирует ее.
 ```python
 def logged(func):
     def with_logging(*args, **kwargs):
@@ -242,7 +260,7 @@ print(hello("Jack"))
 # Я работаю до функции hello
 # Hello, Jack!
 ```
-Единственный минус и причина использовать `wraps` это:
+Единственный минус это:
 ```python
 print(hello.__name__)
 # with_logging
@@ -284,8 +302,8 @@ print(wraps_hello.__doc__)
 ### namedtuple
 Это `tuple`, который каждому элементу кортежа присваивает имя.
 К `namedtuple` можно обращаться как к обычному `tuple`, а также к каждому элементу можно обращаться по атрибутам.
-Использование `namedtuple`, позволяет писать более читаемый и само-документирующийся код.
-Если требуется структура данных напоминяющщая `namedtuple`, но при этом с возможностью измнения полей, то тогда стоит обратить внимание на `dataclasses`.
+Использование `namedtuple`, позволяет писать более читаемый и самодокументированный код.
+Если требуется структура данных напоминающая `namedtuple`, но при этом с возможностью изменения полей, то тогда стоит обратить внимание на `dataclasses`.
 
 #### Примеры использования:
 1. Создание объекта `namedtuple`:
@@ -308,7 +326,7 @@ p = Point(11, y=22)
 ```
 2. Базовый функционал:
 ```python
-# 2.1. Индексация обхектов как в обычном tuple
+# 2.1. Индексация объектов как в обычном tuple
 p[0] + p[1]
 
 # 2.2. Аналогично распаковка
@@ -317,13 +335,13 @@ x, y = p
 # 2.3. Обращение к элементам по названиям полей
 p.x + p.y
 
-# 2.4. __repr__ метод переобределен в следующим виде:
+# 2.4. __repr__ метод переопределен в следующим виде:
 print(p)
 # will print: "Point(x=11, y=22)"
 ```
 
 ### Counter
-Это подкласс `dict`, который служит для подсчета хешируемых обхектов (чаще всего внутри итерируемых). Он представляет из себя коллекцию, где элементы хранятся как ключи, а в качестве значений
+Это подкласс `dict`, который служит для подсчета хешируемых объектов (чаще всего внутри итерируемых). Он представляет собой коллекцию, где элементы хранятся как ключи, а в качестве значений
 #### Примеры использования:
 1. Создание объекта `Counter`:
 ```python
@@ -378,7 +396,7 @@ print(-e)  # Вычитает из пустого Counter
 3. Задачи:
 ```python
 # 3.1. Найти все подстроки-анаграммы в другой подстроке
-def findAnagrams(self, s: str, p: str) -> list[str]:
+def find_anagrams(self, s: str, p: str) -> list[str]:
     cnt1 = Counter(s[: len(p)])
     cnt2 = Counter(p)
     res = list()
@@ -458,7 +476,7 @@ d.move_to_end("b", last=False)
 print("".join(d))
 # will print: 'bacde'
 
-# 2.2. Имплементация LRU cache ограниченного по времени
+# 2.2. Реализация LRU cache ограниченного по времени
 class TimeBoundedLRU:  # Декоратор
     "LRU Cache that invalidates and refreshes old entries."
 
@@ -484,7 +502,7 @@ class TimeBoundedLRU:  # Декоратор
 ### ChainMap
 Класс похожий на словарь используемый для соединения множества словарей в единый вид.
 Также если один из составляющих `ChainMap` словарей изменяется, то и сам `ChainMap` обновляет свои значения.
-Если несколько в полученной модели несколько ключей ссылаюихся на разные объекты, то возвращается тот, чей словарь был записан раньше. 
+Если несколько в полученной модели несколько ключей ссылающихся на разные объекты, то возвращается тот, чей словарь был записан раньше. 
 При этом если операции обновления будут работать только при обращении к ключу первого словаря. Но операции чтения работают по всей цепочке словарей.
 #### Примеры кода:
 1. Создание `ChainMap`:
@@ -532,7 +550,7 @@ class DeepChainMap(ChainMap):
 Дэк - структура данных, которая сочетает в себе стек и очередь или же просто двусторонняя очередь.
 В дэк можно добавлять можно делать вставки в начало и в конец. Операции вставки и удаления с начала/конца выполняются за O(1). 
 `deque` является thread-safe и эффективен по использованию памяти.
-Если `maxlen` не указан, то дек может расти до любых размеров. Если дек заполнится то добавление новых элементов с одного конца будет приводить к удалению элементов с другого. Это удобно для потоковых(pipe) алгоритмов.
+Если `maxlen` не указан, то дек может расти до любых размеров. Если дек заполнится, то добавление новых элементов с одного конца будет приводить к удалению элементов с другого. Это удобно для потоковых(pipe) алгоритмов.
 Они используются например для сохранения истории каких либо действий (например операций undo), которые со временем нужно будет очищать. 
 #### Примеры кода:
 1. Создание `deque`:
@@ -569,7 +587,7 @@ d.extendleft('abc')
 print(d)
 # will print: deque(['a', 'b', 'c', 'g', 'h', 'i', 'j', 'k', 'l'])
 
-# 2.4. Циклический сдвиг (эффективвнее чем у list)
+# 2.4. Циклический сдвиг (эффективнее чем у list)
 f = deque([1,2,3])
 f.rotate(1)
 f.rotate(-2)
@@ -592,7 +610,7 @@ def tail(filename, n=10):
     with open(filename) as f:
         return deque(f, n)
         
-# 3.3. Имплементация балансировщика по типу Round-Robin
+# 3.3. Реализация балансировщика по типу Round-Robin
 def roundrobin(*iterables):
     iterators = deque(map(iter, iterables))
     while iterators:
@@ -624,7 +642,7 @@ def moving_average(iterable, n=3):
 ### collections.abc
 Этот модуль предоставляет базовые абстрактные классы которые могут быть использованы как для реализации своих контейнеров, так и для проверки на то, предоставляет ли рассматриваемый класс необходимый интерфейс (например можно ли по его элементам итерироваться). 
 Проверка на реализацию интерфейса осуществляется через вызов функций: `issubclass()` `isinstance()`. Некоторые классы могут принадлежать конкретным интерфейсам и без наследования и регистрации. Для этого достаточно реализовать абстрактные методы. 
-Собственный класс может наследоваться от этих абcтрактных классов и реализовывать их, при наследовании также приобретятся миксины сопровождающиеся вместе с наследуемыми классами.
+Собственный класс может наследоваться от этих абстрактных классов и реализовывать их, при наследовании также добавятся миксины сопровождающиеся вместе с наследуемыми классами.
 Примеры частоиспользуемых классов:
 - Container
 - Hashable
@@ -639,7 +657,7 @@ def moving_average(iterable, n=3):
 from collections.abc import Sequence
 
 # 1.1. Наследование
-class C(Sequence): # Имплементация класса с методами получения элементов по индексам
+class C(Sequence): # Реализация класса с методами получения элементов по индексам
     def __init__(self): pass
     def __getitem__(self, index):  pass
     def __len__(self):  pass
@@ -684,7 +702,7 @@ d[3] = 3 # will raise TypeError
 # 2.2. Альтернативная реализация set, не требующая хеширования, эффективная по памяти, но не эффективная по скорости
 class ListSet(Set):
     def __init__(self, iterable):
-        self.elements = lst = [] # Эффективность по памяти заключается в использовании связных списков, которые при добавлении элементов линейно увеличивают выделенную память, в отличие от set и dict, которые увеличивают размер выделенной памяти в 2 или 4 раза при достижении предела.
+        self.elements = lst = [] # Эффективность по памяти заключается в использовании связных списков, которые при добавлении элементов линейно увеличивают выделенную память. Обычные Set и dict увеличивают размер выделенной памяти в 2 или 4 раза при достижении предела.
         for value in iterable:
             if value not in lst:
                 lst.append(value)
@@ -702,7 +720,67 @@ print(list(s1 & s2))
 ```
 ## Производительность (стандартная библиотека)[^](#functools)
 
-TODO: добавить про array (насколько быстрее list)
+Практически всегда для набора данных мы используем list. Он может содержать различные типы данных в одном контейнере и имеет много метод для обработки. Но если нам нужно обработать однородные данные, например, массив чисел, то можно использовать array.
+Array имеет большую скорость и меньше затрат на память, так как явно выделяет нужное количество элементов.
+
+
+```python
+_list = [3, 6, 9, 12]
+print(_list)
+print(type(_list))
+```
+
+```bash
+[3, 6, 9, 12]
+<class 'list'>
+```
+
+```python
+import array as arr
+
+_array = arr.array("i", [3, 6, 9, 12])
+print(_array)
+print(type(_array))
+```
+
+```bash
+array('i', [3, 6, 9, 12])
+<class 'array.array'>
+```
+
+Для `array` надо явно указывать тип данных в отличие от list. В остальных случаях, доступ по индексу, итерирование, добавление новых элементов работает так же. 
+
+Сравнение скорости
+
+```python
+# Python list with append()
+np.mean(timeit.repeat(setup="a = []", stmt="a.append(1.0)", number=1000, repeat=5000)) * 1000
+# 0.054 +/- 0.025 msec
+
+# Python array with append()
+np.mean(timeit.repeat(setup="import array; a = array.array('f')", stmt="a.append(1.0)", number=1000, repeat=5000)) * 1000
+# 0.104 +/- 0.025 msec
+
+# Numpy array with append()
+np.mean(timeit.repeat(setup="import numpy as np; a = np.array([])", stmt="np.append(a, [1.0])", number=1000, repeat=5000)) * 1000
+# 5.183 +/- 0.950 msec
+
+# Python list using +=
+np.mean(timeit.repeat(setup="a = []", stmt="a += [1.0]", number=1000, repeat=5000)) * 1000
+# 0.062 +/- 0.021 msec
+
+# Python array using += 
+np.mean(timeit.repeat(setup="import array; a = array.array('f')", stmt="a += array.array('f', [1.0]) ", number=1000, repeat=5000)) * 1000
+# 0.289 +/- 0.043 msec
+
+# Python list using extend()
+np.mean(timeit.repeat(setup="a = []", stmt="a.extend([1.0])", number=1000, repeat=5000)) * 1000
+# 0.083 +/- 0.020 msec
+
+# Python array using extend()
+np.mean(timeit.repeat(setup="import array; a = array.array('f')", stmt="a.extend([1.0]) ", number=1000, repeat=5000)) * 1000
+# 0.169 +/- 0.034
+```
 
 __Встроенные функции для вычислительных операций__
 
@@ -921,11 +999,184 @@ print(map, map2)
 
 ## Обработка больших файлов[^](#big-files)
 
-TODO: чанки и обработка многопроцессорностью
+1. Текстовые данные
 
-https://dev-gang.ru/article/obrabotka-bolshih-failov-s-ispolzovaniem-python-8btakx0nzr/
+Если текстовый файл разделен на строки, то всё достаточно просто.
+```python
+for line in open('really_big_file.dat'):
+    process_data(line)
+```
 
-https://stackoverflow.com/questions/519633/lazy-method-for-reading-big-file-in-python
+Но, при использовании `f.readlines()` весь файл будет выгружаться в ОЗУ
+```python
+with open("input.txt") as f:
+   data = f.readlines()
+   for line in data:
+       process(line)
+```
+
+2. Бинарные файлы
+Это обычный вариант обработки файла.
+
+```python
+with open('really_big_file.dat') as f:
+    process_data(piece)
+```
+
+Чем плох этот вариант?
+Все данные из файла выгружаются в оперативную память. Причем объём выделенной оперативной памяти в несколько раз превышает размер изначального файла, также только начало обработки может занимать несколько минут.
+
+1) Генераторы
+```python
+def read_in_chunks(file_object, chunk_size=1024):
+    """Lazy function (generator) to read a file piece by piece.
+    Default chunk size: 1k."""
+    while True:
+        data = file_object.read(chunk_size)
+        if not data:
+            break
+        yield data
+
+
+with open('really_big_file.dat') as f:
+    for piece in read_in_chunks(f):
+        process_data(piece)
+```
+
+Функция `read_in_chucks` открывает файл и читает 1024 байта из файла. При следующих вызовах генератор не идёт заново по файлу, а двигается от изначального состояние и выдаёт следующие 1024 байта.
+
+2) Итераторы
+```python
+f = open('really_big_file.dat')
+def read1k():
+    return f.read(1024)
+
+for piece in iter(read1k, ''):
+    process_data(piece)
+```
+
+Аналогичный способ через метод `iter`
+
+3. Многопроцессорность
+Если нам не вашен порядок обработки строк мы можем задействовать несколько ядер.
+
+```python
+import multiprocessing as mp
+
+pool = mp.Pool(cores)
+jobs = []
+
+with open("input.txt") as f:
+    for line in f:
+        jobs.append(pool.apply_async(process, [line]))
+
+# дождаться окончания всех работ
+for job in jobs:
+    job.get()
+
+pool.close()
+```
+
+Здесь происходит генерация пула обработчиков для каждого ядра перед созданием группы задач.
+
+Хотя вышеперечисленное теперь использует все эти ядра, к сожалению, снова возникают проблемы с памятью. Мы специально используем функцию apply_async, чтобы пул не блокировался во время обработки каждой строки. Однако при этом все данные снова считываются в память; это время сохраняется в виде отдельных строк, связанных с каждым заданием, ожидая обработки в строке. Таким образом, память снова будет переполнена. В идеале метод считывает строку в память только тогда, когда подходит ее очередь на обработку.
+
+```python
+import multiprocessing as mp
+
+
+def process_wrapper(lineID):
+    with open("input.txt") as f:
+        for i, line in enumerate(f):
+            if i != lineID:
+                continue
+            else:
+                process(line)
+                break
+
+
+pool = mp.Pool(cores)
+jobs = []
+
+with open("input.txt") as f:
+    for ID, line in enumerate(f):
+        jobs.append(pool.apply_async(process_wrapper, [ID]))
+
+# дождаться окончания всех работ
+for job in jobs:
+    job.get()
+
+pool.close()
+```
+
+Выше мы изменили функцию, переданную в пул обработчика, чтобы она включала в себя открытие файла, поиск указанной строки, чтение ее в память и последующую обработку. Единственный вход, который теперь сохраняется для каждой порожденной задачи - это номер строки, что предотвращает переполнение памяти. К сожалению, накладные расходы, связанные с необходимостью найти строку путем итеративного чтения файла для каждого задания, являются несостоятельными, поскольку по мере того, как вы углубляетесь в файл, процесс занимает все больше времени. Чтобы избежать этого, мы можем использовать функцию поиска файловых объектов, которая пропускает вас в определенное место в файле. Сочетание с функцией tell, которая возвращает текущее местоположение в файле, дает:
+
+```python
+import multiprocessing as mp
+
+def process_wrapper(line_byte):
+   with open("input.txt") as f:
+       f.seek(line_byte)
+       line = f.readline()
+       process(line)
+
+pool = mp.Pool(cores)
+jobs = []
+
+with open("input.txt") as f:
+   next_line_byte = f.tell()
+   for line in f:
+       jobs.append(pool.apply_async(process_wrapper, [next_line_byte]) )
+       next_line_byte = f.tell()
+
+for job in jobs:
+   job.get()
+
+pool.close()
+```
+
+Используя поиск, мы можем перейти непосредственно к правильной части файла, после чего мы читаем строку в память и обрабатываем ее. Мы должны быть осторожны, чтобы правильно обрабатывать первую и последнюю строки, но в противном случае это будет именно то, что мы излагаем, а именно использование всех ядер для обработки данного файла без переполнения памяти.
+
+Есть накладные расходы, связанные с открытием и закрытием файла для каждой отдельной строки. Если мы обрабатываем несколько строк файла за один раз, мы можем сократить эти операции. Самая большая техническая сложность при этом заключается в том, что при переходе к месту в файле вы, скорее всего, не находитесь в начале строки. Для простого файла, как в этом примере, это просто означает, что вам нужно вызвать readline, который читает следующий символ новой строки. Более сложные типы файлов, вероятно, требуют дополнительного кода, чтобы найти подходящее место для начала / конца чанка.
+
+```python
+import multiprocessing as mp
+import os
+
+
+def process_wrapper(chunk_start, chunk_size):
+    with open("input.txt") as f:
+        f.seek(chunk_start)
+        lines = f.read(chunk_size).splitlines()
+        for line in lines:
+            process(line)
+
+
+def chunkify(fname, size=1024 * 1024):
+    file_end = os.path.getsize(fname)
+    with open(fname, "r") as f:
+        chunk_end = f.tell()
+    while chunk_end:
+        chunk_start = chunk_end
+        f.seek(size, 1)
+        f.readline()
+        chunk_end = f.tell()
+        yield chunk_start, chunk_end - chunk_start
+        if chunk_end > file_end:
+            break
+
+
+pool = mp.Pool(cores)
+jobs = []
+
+for chunk_start, chunk_size in chunkify("input.txt"):
+    jobs.append(pool.apply_async(process_wrapper, (chunk_start, chunk_size)))
+
+for job in jobs:
+    job.get()
+
+pool.close()
+```
 
 ## Сахарок[^](#sugar)
 
